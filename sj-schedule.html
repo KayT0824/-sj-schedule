@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SUPER JUNIOR 商演行程</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.44.0/iconfont/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<style>
+  :root{
+    --ink:#0e1016;
+    --panel:#171a24;
+    --panel-2:#1e2230;
+    --line:#2b3040;
+    --paper:#e9ebf1;
+    --paper-dim:#9aa1b5;
+    --sapphire:#2f6fed;
+    --sapphire-dim:#1c3f8c;
+    --coral:#e8503a;
+    --gold:#e8b23a;
+    --green:#3ac97f;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--ink);color:var(--paper);font-family:'Inter',sans-serif;}
+  body{min-height:100vh;padding-bottom:80px;}
+  ::selection{background:rgba(47,111,237,0.35);}
+  a{color:var(--sapphire);}
+
+  /* ---------- Header image area ---------- */
+  .hero{
+    position:relative;
+    width:100%;
+    height:260px;
+    overflow:hidden;
+    background:linear-gradient(135deg,#151826 0%, #10121b 100%);
+    border-bottom:1px solid var(--line);
+  }
+  .hero img{
+    position:absolute;
+    top:-35%; left:-35%; width:170%; height:170%;
+    object-fit:cover;
+    transform:translate(var(--panx,0%), var(--pany,0%));
+  }
+  .hero-empty{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    flex-direction:column; gap:6px; color:var(--paper-dim); font-size:12px;
+  }
+  .hero-empty i{font-size:26px; opacity:0.5;}
+  .hero-overlay{
+    position:absolute; inset:0;
+    background:linear-gradient(180deg, rgba(10,11,17,0.05) 0%, rgba(10,11,17,0.85) 100%);
+    display:flex; align-items:flex-end; padding:22px 20px;
+  }
+  .hero-title-wrap{max-width:1180px; margin:0 auto; width:100%;}
+  .hero-title{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(28px,5vw,44px);
+    letter-spacing:3px;
+    color:#fff;
+    display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;
+    text-shadow:0 2px 12px rgba(0,0,0,0.5);
+  }
+  .hero-title .dot{color:var(--sapphire); font-size:0.6em;}
+  .hero-sub{color:rgba(255,255,255,0.75); font-size:13px; margin-top:4px; letter-spacing:0.5px; text-shadow:0 1px 6px rgba(0,0,0,0.5);}
+
+  .hero-admin-toggle{
+    position:absolute; top:14px; right:14px; z-index:5;
+    display:flex; gap:8px;
+  }
+  .icon-btn{
+    background:rgba(14,16,22,0.65); border:1px solid rgba(255,255,255,0.15); color:#fff;
+    border-radius:8px; padding:7px 12px; font-size:12px; cursor:pointer; backdrop-filter:blur(4px);
+    display:flex; align-items:center; gap:5px;
+  }
+  .icon-btn:hover{background:rgba(14,16,22,0.9);}
+
+  .hero-edit-panel{
+    background:var(--panel-2); border-top:1px solid var(--line);
+    padding:14px 20px; display:none;
+  }
+  .hero-edit-panel.show{display:block;}
+  .hero-edit-inner{max-width:1180px; margin:0 auto; display:flex; gap:18px; flex-wrap:wrap; align-items:center;}
+  .hero-edit-inner .field{min-width:160px;}
+  .hero-edit-inner .field label{font-size:11px; color:var(--paper-dim); display:block; margin-bottom:5px;}
+  .hero-edit-inner input[type="range"]{width:180px;}
+  .file-btn{
+    background:var(--sapphire); color:#fff; border:none; border-radius:6px; padding:8px 14px;
+    font-size:12px; font-weight:600; cursor:pointer;
+  }
+  .file-btn.ghost{background:transparent; border:1px solid var(--line); color:var(--paper);}
+
+  /* ---------- Next-up flap ---------- */
+  .next-flap-wrap{max-width:1180px; margin:0 auto; padding:14px 20px 0;}
+  .next-flap{
+    display:flex; gap:0; flex-wrap:wrap;
+    border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; background:var(--panel);
+  }
+  .flap-cell{padding:10px 16px; border-right:1px solid var(--line); flex:1 1 auto; min-width:100px;}
+  .flap-cell:last-child{border-right:none;}
+  .flap-label{font-size:10px; letter-spacing:1.5px; color:var(--paper-dim); text-transform:uppercase; margin-bottom:4px;}
+  .flap-value{font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:600; color:var(--paper); letter-spacing:0.3px;}
+  .flap-value.accent{color:var(--sapphire);}
+  .flap-empty{color:var(--paper-dim); font-family:'Inter'; font-size:13px; padding:10px 16px;}
+
+  /* ---------- Layout ---------- */
+  .wrap{max-width:1180px; margin:0 auto; padding:18px 20px;}
+  .notice{
+    font-size:12px; color:var(--paper-dim); background:var(--panel);
+    border:1px solid var(--line); border-radius:var(--radius); padding:10px 14px; margin-bottom:18px; line-height:1.6;
+  }
+  .notice b{color:var(--gold); font-weight:600;}
+  .notice.warn{border-color:var(--coral); color:#f0b3a8;}
+  .notice.warn b{color:var(--coral);}
+
+  /* ---------- Filter bar ---------- */
+  .filters{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:16px; margin-bottom:14px;}
+  .filters-row{display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;}
+  .field{display:flex; flex-direction:column; gap:5px; min-width:130px;}
+  .field label{font-size:11px; color:var(--paper-dim); letter-spacing:0.5px;}
+  input,select{
+    background:var(--panel-2); border:1px solid var(--line); color:var(--paper);
+    border-radius:6px; padding:8px 10px; font-family:'Inter'; font-size:13px; outline:none;
+  }
+  input:focus,select:focus{border-color:var(--sapphire);}
+  input[type="text"]{min-width:160px;}
+  input[type="date"]{color-scheme:dark;}
+  input[type="date"]::-webkit-calendar-picker-indicator{
+    filter:invert(0.9) brightness(1.4);
+    cursor:pointer;
+    padding:4px;
+    border-radius:4px;
+    opacity:0.9;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator:hover{
+    background:var(--sapphire-dim);
+    opacity:1;
+  }
+  .chips{display:flex; flex-wrap:wrap; gap:6px;}
+  .chip{
+    padding:5px 11px; border-radius:20px; border:1px solid var(--line);
+    background:var(--panel-2); font-size:12px; cursor:pointer; color:var(--paper-dim);
+    user-select:none; transition:all .15s; white-space:nowrap;
+  }
+  .chip:hover{border-color:var(--sapphire);}
+  .chip.active{background:var(--sapphire); border-color:var(--sapphire); color:#fff;}
+  .chip.chip-empty{opacity:0.4;}
+  .chip.chip-empty.active{opacity:1;}
+  .btn{
+    background:var(--sapphire); color:#fff; border:none; border-radius:6px;
+    padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Inter';
+  }
+  .btn:hover{background:#3f7ef5;}
+  .btn.ghost{background:transparent; border:1px solid var(--line); color:var(--paper);}
+  .btn.ghost:hover{border-color:var(--sapphire); color:var(--sapphire);}
+  .btn.danger{background:var(--coral);}
+  .btn.danger:hover{background:#f16249;}
+  .btn.sm{padding:6px 11px; font-size:12px;}
+  .btn:disabled{opacity:0.4; cursor:not-allowed;}
+
+  /* ---------- Subtotal panel ---------- */
+  .subtotal{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px 16px; margin-bottom:14px;
+  }
+  .subtotal-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+  .subtotal-count{font-family:'JetBrains Mono'; font-size:20px; font-weight:600; color:var(--paper);}
+  .subtotal-count .n{color:var(--sapphire);}
+  .subtotal-total{font-size:12px; color:var(--paper-dim);}
+  .subtotal-groups{display:flex; flex-direction:column; gap:8px;}
+  .subtotal-group-label{font-size:10px; letter-spacing:1px; color:var(--paper-dim); text-transform:uppercase; margin-bottom:5px;}
+  .subtotal-pills{display:flex; flex-wrap:wrap; gap:6px;}
+  .subtotal-pill{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:6px;
+    padding:4px 9px; font-size:12px; color:var(--paper); white-space:nowrap;
+  }
+  .subtotal-pill b{color:var(--sapphire); font-family:'JetBrains Mono';}
+
+  .toolbar{display:flex; justify-content:flex-end; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;}
+  .actions{display:flex; gap:8px; flex-wrap:wrap;}
+
+  /* ---------- Table ---------- */
+  .table-wrap{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); overflow-x:auto;}
+  table{width:100%; border-collapse:collapse; font-size:13px; min-width:960px;}
+  thead th{
+    text-align:left; padding:11px 12px; font-size:11px; letter-spacing:0.5px; text-transform:uppercase;
+    color:var(--paper-dim); border-bottom:1px solid var(--line); white-space:nowrap; cursor:pointer;
+    position:sticky; top:0; background:var(--panel);
+  }
+  thead th:hover{color:var(--sapphire);}
+  thead th .arrow{margin-left:4px; opacity:0.5; font-size:10px;}
+  tbody tr{border-bottom:1px solid var(--line); cursor:pointer; transition:background .1s;}
+  tbody tr:hover{background:var(--panel-2);}
+  tbody tr:last-child{border-bottom:none;}
+  td{padding:11px 12px; vertical-align:top; color:var(--paper);}
+  td.date{font-family:'JetBrains Mono'; white-space:nowrap;}
+  .tag{display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; border:1px solid; white-space:nowrap;}
+  .tag.confirmed{color:var(--green); border-color:var(--green); background:rgba(58,201,127,0.08);}
+  .tag.tentative{color:var(--gold); border-color:var(--gold); background:rgba(232,178,58,0.08);}
+  .tag.cancelled{color:var(--coral); border-color:var(--coral); background:rgba(232,80,58,0.08); text-decoration:line-through;}
+  .grouptag{display:inline-block; font-size:11px; padding:2px 7px; border-radius:4px; background:var(--panel-2); border:1px solid var(--line); color:var(--paper-dim);}
+  .empty-state{padding:50px 20px; text-align:center; color:var(--paper-dim);}
+  .empty-state .big{font-family:'Bebas Neue'; font-size:22px; color:var(--paper); letter-spacing:1px; margin-bottom:6px;}
+
+  .detail-row td{background:var(--panel-2); padding:16px; border-bottom:1px solid var(--line);}
+  .detail-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:10px;}
+  .detail-item .k{font-size:10px; letter-spacing:1px; color:var(--paper-dim); text-transform:uppercase; margin-bottom:3px;}
+  .detail-item .v{font-size:13px; color:var(--paper);}
+  .detail-actions{display:flex; gap:8px; margin-top:8px;}
+
+  .overlay{position:fixed; inset:0; background:rgba(5,6,10,0.72); display:none; align-items:center; justify-content:center; z-index:50; padding:20px;}
+  .overlay.show{display:flex;}
+  .modal{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); width:100%; max-width:560px; max-height:88vh; overflow-y:auto; padding:22px;}
+  .modal h3{font-family:'Bebas Neue'; letter-spacing:1px; font-size:22px; margin:0 0 16px; color:var(--paper);}
+  .modal .field{width:100%; margin-bottom:12px;}
+  .modal .field input,.modal .field select,.modal .field textarea{width:100%;}
+  textarea{background:var(--panel-2); border:1px solid var(--line); color:var(--paper); border-radius:6px; padding:8px 10px; font-family:'Inter'; font-size:13px; resize:vertical; min-height:60px;}
+  .two-col{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .modal-footer{display:flex; justify-content:flex-end; gap:8px; margin-top:16px;}
+  .pin-box{max-width:320px;}
+  .hint{font-size:11px; color:var(--paper-dim); margin-top:6px; line-height:1.5;}
+
+  .toast{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--panel-2); border:1px solid var(--sapphire); color:var(--paper); padding:10px 18px; border-radius:8px; font-size:13px; z-index:60; display:none;}
+  .toast.show{display:block;}
+
+  @media (max-width:640px){
+    .two-col{grid-template-columns:1fr;}
+    .flap-cell{min-width:80px; padding:8px 10px;}
+    .hero{height:180px;}
+    .filters-row{gap:8px;}
+    .field{min-width:47%; flex:1 1 47%;}
+    .field input[type="text"]{min-width:0; width:100%;}
+    .subtotal-groups{gap:10px;}
+    .toolbar{justify-content:stretch;}
+    .actions{width:100%;}
+    .actions .btn{flex:1;}
+  }
+</style>
+</head>
+<body>
+
+<div class="hero" id="hero">
+  <img id="heroImg" src="" style="display:none;">
+  <div class="hero-empty" id="heroEmpty">
+    <i class="ti ti-photo"></i>
+    <span>尚未設定表頭圖片</span>
+  </div>
+  <div class="hero-overlay">
+    <div class="hero-title-wrap">
+      <div class="hero-title"><span class="dot">●</span>SUPER JUNIOR<span style="font-size:0.5em; color:rgba(255,255,255,0.6); letter-spacing:0.5px;">商演行程</span></div>
+      <div class="hero-sub">公開行程查詢・即時同步・可依任何欄位篩選</div>
+    </div>
+  </div>
+  <div class="hero-admin-toggle">
+    <button class="icon-btn" id="adminBtn">管理模式</button>
+  </div>
+</div>
+
+<div class="hero-edit-panel" id="heroEditPanel">
+  <div class="hero-edit-inner">
+    <div class="field">
+      <label>更換表頭圖片</label>
+      <input type="file" id="heroFileInput" accept="image/*" style="font-size:12px; color:var(--paper-dim);">
+    </div>
+    <div class="field">
+      <label>水平位置</label>
+      <input type="range" id="heroPosX" min="0" max="100" value="50">
+    </div>
+    <div class="field">
+      <label>垂直位置</label>
+      <input type="range" id="heroPosY" min="0" max="100" value="50">
+    </div>
+    <button class="file-btn ghost" id="heroRemoveBtn">移除圖片</button>
+  </div>
+</div>
+
+<div class="next-flap-wrap">
+  <div class="next-flap" id="nextFlap"></div>
+</div>
+
+<div class="wrap">
+  <div class="notice" id="fbNotice"></div>
+
+  <div class="filters">
+    <div class="filters-row">
+      <div class="field" style="flex:1 1 200px;">
+        <label>關鍵字(活動名稱／備註)</label>
+        <input type="text" id="fSearch" placeholder="例如：演唱會、Fancon…">
+      </div>
+      <div class="field">
+        <label>日期從</label>
+        <input type="date" id="fFrom">
+      </div>
+      <div class="field">
+        <label>日期到</label>
+        <input type="date" id="fTo">
+      </div>
+      <div class="field">
+        <label>國家</label>
+        <select id="fCountry"><option value="">全部</option></select>
+      </div>
+      <div class="field">
+        <label>城市</label>
+        <select id="fCity"><option value="">全部</option></select>
+      </div>
+      <div class="field">
+        <label>活動類型</label>
+        <select id="fCategory"><option value="">全部</option></select>
+      </div>
+      <div class="field">
+        <label>狀態</label>
+        <select id="fStatus">
+          <option value="">全部</option>
+          <option value="confirmed">確定</option>
+          <option value="tentative">未確定</option>
+          <option value="cancelled">已取消</option>
+        </select>
+      </div>
+      <button class="btn ghost sm" id="clearFilters">清除篩選</button>
+    </div>
+    <div class="filters-row" style="margin-top:12px;">
+      <div class="field" style="flex:1;">
+        <label>類別(個人／小分隊／大隊)</label>
+        <div class="chips" id="grouptypeChips"></div>
+      </div>
+    </div>
+    <div class="field" style="margin-top:12px;">
+      <label>主角(可複選)</label>
+      <div class="chips" id="whoChips"></div>
+    </div>
+  </div>
+
+  <div class="subtotal">
+    <div class="subtotal-head">
+      <div class="subtotal-count">篩選結果小計：<span class="n" id="subtotalNum">0</span> 場</div>
+      <div class="subtotal-total" id="subtotalTotal"></div>
+    </div>
+    <div class="subtotal-groups">
+      <div>
+        <div class="subtotal-group-label">依活動類型</div>
+        <div class="subtotal-pills" id="subtotalByCategory"></div>
+      </div>
+      <div>
+        <div class="subtotal-group-label">依主角</div>
+        <div class="subtotal-pills" id="subtotalByWho"></div>
+      </div>
+      <div>
+        <div class="subtotal-group-label">依國家</div>
+        <div class="subtotal-pills" id="subtotalByCountry"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="actions">
+      <button class="btn ghost sm" id="exportBtn">匯出 Excel</button>
+      <button class="btn ghost sm" id="fixStatusBtn" style="display:none;">將「未確定」全部改為「確定」</button>
+      <button class="btn ghost sm" id="bulkImportToggle" style="display:none;">批次匯入/更新</button>
+      <button class="btn sm" id="addBtn" style="display:none;">＋ 新增行程</button>
+    </div>
+  </div>
+
+  <div class="filters" id="bulkImportPanel" style="display:none; margin-bottom:14px;">
+    <div style="font-size:12px; color:var(--paper-dim); margin-bottom:8px; line-height:1.6;">
+      直接從 Word/Excel 表格<b style="color:var(--gold);">選取列複製、貼上</b>即可，欄位順序需跟原表一致：年度、月份、日期、類別(個人/小分隊/大隊)、主角、國家、城市、活動名稱、活動類型(、狀態可省略，預設為確定)。也支援貼上 Claude 幫你轉好的 JSON。系統會用「日期＋主角＋活動名稱」判斷是否為同一筆——相符的會覆蓋更新，沒有的會新增，不會重複。
+    </div>
+    <textarea id="bulkImportText" placeholder="直接貼上 Word 表格的列（Ctrl+C / Ctrl+V），或貼上 JSON 陣列" style="min-height:140px; font-family:'JetBrains Mono',monospace; font-size:12px;"></textarea>
+    <div style="display:flex; gap:8px; margin-top:10px;">
+      <button class="btn" id="bulkImportBtn">匯入 / 更新</button>
+      <button class="btn ghost" id="bulkImportCancel">取消</button>
+    </div>
+    <div class="hint" id="bulkImportResult"></div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th data-sort="date">日期<span class="arrow"></span></th>
+          <th data-sort="grouptype">類別<span class="arrow"></span></th>
+          <th data-sort="who">主角<span class="arrow"></span></th>
+          <th data-sort="country">國家/城市<span class="arrow"></span></th>
+          <th data-sort="title">活動名稱<span class="arrow"></span></th>
+          <th data-sort="category">活動類型<span class="arrow"></span></th>
+          <th data-sort="status">狀態<span class="arrow"></span></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <div class="big">目前沒有符合條件的行程</div>
+      <div>試試清除篩選,或由管理者新增第一筆行程。</div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="editOverlay">
+  <div class="modal">
+    <h3 id="modalTitle">新增行程</h3>
+    <input type="hidden" id="editId">
+    <div class="two-col">
+      <div class="field"><label>日期 *</label><input type="date" id="mDate"></div>
+      <div class="field">
+        <label>狀態</label>
+        <select id="mStatus">
+          <option value="confirmed">確定</option>
+          <option value="tentative">未確定</option>
+          <option value="cancelled">已取消</option>
+        </select>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="field">
+        <label>類別</label>
+        <select id="mGrouptype">
+          <option value="個人">個人</option>
+          <option value="小分隊">小分隊</option>
+          <option value="大隊">大隊</option>
+        </select>
+      </div>
+      <div class="field"><label>主角 *</label><input type="text" id="mWho" placeholder="例如 藝聲 / D&E / 全員"></div>
+    </div>
+    <div class="two-col">
+      <div class="field"><label>國家</label><input type="text" id="mCountry" placeholder="例如 台灣"></div>
+      <div class="field"><label>城市</label><input type="text" id="mCity" placeholder="例如 台北"></div>
+    </div>
+    <div class="field"><label>活動名稱 *</label><input type="text" id="mTitle" placeholder="例如 亞洲巡迴演唱會"></div>
+    <div class="field"><label>活動類型</label><input type="text" id="mCategory" placeholder="例如 巡迴演唱會 / Fancon / 音樂節"></div>
+    <div class="field"><label>來源連結</label><input type="text" id="mSource" placeholder="https://..."></div>
+    <div class="field"><label>備註</label><textarea id="mNotes" placeholder="其他資訊、購票資訊等"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn ghost" id="cancelEdit">取消</button>
+      <button class="btn danger" id="deleteEvent" style="display:none;">刪除</button>
+      <button class="btn" id="saveEvent">儲存</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="pinOverlay">
+  <div class="modal pin-box">
+    <h3 id="pinTitle">輸入管理密碼</h3>
+    <div class="field"><input type="password" id="pinInput" placeholder="密碼"></div>
+    <div class="hint" id="pinHint"></div>
+    <div class="modal-footer">
+      <button class="btn ghost" id="pinCancel">取消</button>
+      <button class="btn" id="pinConfirm">確認</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SEED_DATA = [{"date": "2026-07-11", "grouptype": "個人", "who": "厲旭", "country": "韓國", "city": "首爾", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-07-12", "grouptype": "個人", "who": "厲旭", "country": "韓國", "city": "首爾", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-07-18", "grouptype": "個人", "who": "厲旭", "country": "泰國", "city": "曼谷", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-07-25", "grouptype": "個人", "who": "厲旭", "country": "中國", "city": "澳門", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-07-26", "grouptype": "個人", "who": "厲旭", "country": "中國", "city": "澳門", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-07-31", "grouptype": "個人", "who": "厲旭", "country": "台灣", "city": "台北", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-08-01", "grouptype": "個人", "who": "厲旭", "country": "台灣", "city": "台北", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-09-20", "grouptype": "個人", "who": "厲旭", "country": "中國", "city": "香港", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-07-24", "grouptype": "小分隊", "who": "83z", "country": "韓國", "city": "首爾", "title": "亞洲巡迴Fancon", "category": "Fancon", "status": "confirmed"}, {"date": "2026-07-25", "grouptype": "小分隊", "who": "83z", "country": "韓國", "city": "首爾", "title": "亞洲巡迴Fancon", "category": "Fancon", "status": "confirmed"}, {"date": "2026-07-26", "grouptype": "小分隊", "who": "83z", "country": "韓國", "city": "首爾", "title": "亞洲巡迴Fancon", "category": "Fancon", "status": "confirmed"}, {"date": "2026-08-01", "grouptype": "小分隊", "who": "83z", "country": "日本", "city": "東京", "title": "亞洲巡迴Fancon", "category": "Fancon", "status": "confirmed"}, {"date": "2026-08-02", "grouptype": "小分隊", "who": "83z", "country": "日本", "city": "東京", "title": "亞洲巡迴Fancon", "category": "Fancon", "status": "confirmed"}, {"date": "2026-08-15", "grouptype": "小分隊", "who": "83z", "country": "泰國", "city": "曼谷", "title": "亞洲巡迴Fancon", "category": "Fancon", "status": "confirmed"}, {"date": "2026-08-29", "grouptype": "小分隊", "who": "83z", "country": "中國", "city": "香港", "title": "亞洲巡迴Fancon", "category": "Fancon", "status": "confirmed"}, {"date": "2026-09-13", "grouptype": "小分隊", "who": "83z", "country": "馬來西亞", "city": "吉隆坡", "title": "亞洲巡迴Fancon", "category": "Fancon", "status": "confirmed"}, {"date": "2026-09-19", "grouptype": "小分隊", "who": "83z", "country": "中國", "city": "澳門", "title": "亞洲巡迴Fancon", "category": "Fancon", "status": "confirmed"}, {"date": "2026-10-03", "grouptype": "小分隊", "who": "83z", "country": "台灣", "city": "高雄", "title": "亞洲巡迴Fancon", "category": "Fancon", "status": "confirmed"}, {"date": "2026-10-16", "grouptype": "小分隊", "who": "83z", "country": "新加坡", "city": "新加坡", "title": "亞洲巡迴Fancon", "category": "Fancon", "status": "confirmed"}, {"date": "2026-11-21", "grouptype": "小分隊", "who": "83z", "country": "台灣", "city": "台北(桃園)", "title": "亞洲巡迴Fancon", "category": "Fancon", "status": "confirmed"}, {"date": "2026-10-04", "grouptype": "小分隊", "who": "D&E", "country": "台灣", "city": "台北", "title": "KPOP PRIME", "category": "拼盤表演", "status": "confirmed"}, {"date": "2026-10-10", "grouptype": "小分隊", "who": "KRY", "country": "台灣", "city": "高雄", "title": "首爾公園音樂節", "category": "音樂節", "status": "confirmed"}, {"date": "2026-10-16", "grouptype": "個人", "who": "銀赫", "country": "台灣", "city": "台北", "title": "亞洲巡迴Fancon", "category": "Fancon", "status": "confirmed"}, {"date": "2026-03-28", "grouptype": "個人", "who": "銀赫", "country": "韓國", "city": "首爾", "title": "亞洲巡迴Fancon", "category": "Fancon", "status": "confirmed"}, {"date": "2026-03-29", "grouptype": "個人", "who": "銀赫", "country": "韓國", "city": "首爾", "title": "亞洲巡迴Fancon", "category": "Fancon", "status": "confirmed"}, {"date": "2026-04-11", "grouptype": "個人", "who": "銀赫", "country": "日本", "city": "東京", "title": "亞洲巡迴Fancon", "category": "Fancon", "status": "confirmed"}, {"date": "2026-04-12", "grouptype": "個人", "who": "銀赫", "country": "日本", "city": "東京", "title": "亞洲巡迴Fancon", "category": "Fancon", "status": "confirmed"}, {"date": "2026-04-18", "grouptype": "個人", "who": "銀赫", "country": "中國", "city": "澳門", "title": "亞洲巡迴Fancon", "category": "Fancon", "status": "confirmed"}, {"date": "2026-04-19", "grouptype": "個人", "who": "銀赫", "country": "中國", "city": "澳門", "title": "亞洲巡迴Fancon", "category": "Fancon", "status": "confirmed"}, {"date": "2026-09-19", "grouptype": "個人", "who": "銀赫", "country": "中國", "city": "香港", "title": "亞洲巡迴Fancon", "category": "Fancon", "status": "confirmed"}, {"date": "2026-10-31", "grouptype": "個人", "who": "銀赫", "country": "中國", "city": "澳門", "title": "亞洲巡迴Fancon", "category": "Fancon", "status": "confirmed"}, {"date": "2026-11-01", "grouptype": "個人", "who": "銀赫", "country": "中國", "city": "澳門", "title": "亞洲巡迴Fancon", "category": "Fancon", "status": "confirmed"}, {"date": "2026-12-21", "grouptype": "個人", "who": "藝聲", "country": "台灣", "city": "台北", "title": "好好生醫見面會", "category": "品牌代言/合作", "status": "confirmed"}, {"date": "2026-11-25", "grouptype": "個人", "who": "希澈", "country": "台灣", "city": "台北", "title": "好好生醫見面會", "category": "品牌代言/合作", "status": "confirmed"}, {"date": "2026-01-03", "grouptype": "大隊", "who": "全員", "country": "新加坡", "city": "新加坡", "title": "SS10 世界巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-01-10", "grouptype": "大隊", "who": "全員", "country": "中國", "city": "澳門", "title": "SS10 世界巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-01-11", "grouptype": "大隊", "who": "全員", "country": "中國", "city": "澳門", "title": "SS10 世界巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-01-17", "grouptype": "大隊", "who": "全員", "country": "馬來西亞", "city": "吉隆坡", "title": "SS10 世界巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-01-23", "grouptype": "大隊", "who": "全員", "country": "台灣", "city": "高雄", "title": "SS10 世界巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-01-24", "grouptype": "大隊", "who": "全員", "country": "台灣", "city": "高雄", "title": "SS10 世界巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-01-25", "grouptype": "大隊", "who": "全員", "country": "台灣", "city": "高雄", "title": "SS10 世界巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-03-07", "grouptype": "大隊", "who": "全員", "country": "日本", "city": "埼玉", "title": "SS10 世界巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-03-08", "grouptype": "大隊", "who": "全員", "country": "日本", "city": "埼玉", "title": "SS10 世界巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-03-21", "grouptype": "大隊", "who": "全員", "country": "越南", "city": "胡志明市", "title": "SS10 世界巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-04-03", "grouptype": "大隊", "who": "全員", "country": "韓國", "city": "首爾", "title": "SS10 世界巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-04-04", "grouptype": "大隊", "who": "全員", "country": "韓國", "city": "首爾", "title": "SS10 世界巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-04-05", "grouptype": "大隊", "who": "全員", "country": "韓國", "city": "首爾", "title": "SS10 世界巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-08-22", "grouptype": "大隊", "who": "(非全員)", "country": "中國", "city": "香港", "title": "TIMA", "category": "拼盤表演", "status": "confirmed"}, {"date": "2026-08-23", "grouptype": "大隊", "who": "(非全員)", "country": "中國", "city": "香港", "title": "TIMA", "category": "拼盤表演", "status": "confirmed"}, {"date": "2026-05-15", "grouptype": "個人", "who": "東海", "country": "韓國", "city": "首爾", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-05-16", "grouptype": "個人", "who": "東海", "country": "韓國", "city": "首爾", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-05-17", "grouptype": "個人", "who": "東海", "country": "韓國", "city": "首爾", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-05-29", "grouptype": "個人", "who": "東海", "country": "台灣", "city": "台北", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-05-30", "grouptype": "個人", "who": "東海", "country": "台灣", "city": "台北", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-05-31", "grouptype": "個人", "who": "東海", "country": "台灣", "city": "台北", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-06-27", "grouptype": "個人", "who": "東海", "country": "中國", "city": "香港", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-06-28", "grouptype": "個人", "who": "東海", "country": "中國", "city": "香港", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-07-04", "grouptype": "個人", "who": "東海", "country": "日本", "city": "大阪", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-07-05", "grouptype": "個人", "who": "東海", "country": "日本", "city": "大阪", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-07-25", "grouptype": "個人", "who": "東海", "country": "台灣", "city": "高雄", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-07-26", "grouptype": "個人", "who": "東海", "country": "台灣", "city": "高雄", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-08-15", "grouptype": "個人", "who": "東海", "country": "中國", "city": "澳門", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-08-16", "grouptype": "個人", "who": "東海", "country": "中國", "city": "澳門", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-09-04", "grouptype": "個人", "who": "東海", "country": "韓國", "city": "首爾", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-09-05", "grouptype": "個人", "who": "東海", "country": "韓國", "city": "首爾", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-09-06", "grouptype": "個人", "who": "東海", "country": "韓國", "city": "首爾", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-06-06", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "Fancon (Hotel 203)", "category": "Fancon", "status": "confirmed"}, {"date": "2026-06-07", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "Fancon (Hotel 203)", "category": "Fancon", "status": "confirmed"}, {"date": "2026-06-19", "grouptype": "個人", "who": "圭賢", "country": "日本", "city": "東京", "title": "Fancon (Hotel 203)", "category": "Fancon", "status": "confirmed"}, {"date": "2026-06-27", "grouptype": "個人", "who": "圭賢", "country": "台灣", "city": "台北", "title": "Fancon (Hotel 203)", "category": "Fancon", "status": "confirmed"}, {"date": "2026-06-28", "grouptype": "個人", "who": "圭賢", "country": "台灣", "city": "台北", "title": "Fancon (Hotel 203)", "category": "Fancon", "status": "confirmed"}, {"date": "2026-07-05", "grouptype": "個人", "who": "圭賢", "country": "中國", "city": "上海", "title": "Fancon (Hotel 203)", "category": "Fancon", "status": "confirmed"}, {"date": "2026-05-05", "grouptype": "個人", "who": "藝聲", "country": "日本", "city": "大阪", "title": "日本巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-05-06", "grouptype": "個人", "who": "藝聲", "country": "日本", "city": "大阪", "title": "日本巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-05-09", "grouptype": "個人", "who": "藝聲", "country": "日本", "city": "愛知", "title": "日本巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-05-29", "grouptype": "個人", "who": "藝聲", "country": "日本", "city": "東京", "title": "日本巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-05-30", "grouptype": "個人", "who": "藝聲", "country": "日本", "city": "東京", "title": "日本巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-08-02", "grouptype": "個人", "who": "厲旭", "country": "台灣", "city": "台北", "title": "簽售見面會", "category": "簽售見面會", "status": "confirmed"}, {"date": "2026-06-13", "grouptype": "個人", "who": "東海", "country": "台灣", "city": "台北", "title": "KKBOX", "category": "拼盤表演", "status": "confirmed"}, {"date": "2026-04-18", "grouptype": "個人", "who": "圭賢", "country": "台灣", "city": "嘉義", "title": "全中運", "category": "拼盤表演", "status": "confirmed"}, {"date": "2026-08-30", "grouptype": "個人", "who": "圭賢", "country": "台灣", "city": "台北", "title": "職棒嘉賓(樂天)", "category": "職棒表演", "status": "confirmed"}, {"date": "2026-07-05", "grouptype": "個人", "who": "藝聲", "country": "台灣", "city": "高雄", "title": "啤酒音樂節", "category": "音樂節", "status": "confirmed"}, {"date": "2026-09-05", "grouptype": "小分隊", "who": "LSS", "country": "台灣", "city": "台北", "title": "職棒嘉賓(富邦)", "category": "職棒表演", "status": "confirmed"}, {"date": "2026-09-12", "grouptype": "個人", "who": "圭賢", "country": "台灣", "city": "澎湖", "title": "追風音樂季", "category": "音樂節", "status": "confirmed"}, {"date": "2026-09-17", "grouptype": "小分隊", "who": "D&E", "country": "台灣", "city": "台北", "title": "蘭蔻品牌見面會", "category": "品牌代言/合作", "status": "confirmed"}, {"date": "2026-10-17", "grouptype": "個人", "who": "藝聲", "country": "韓國", "city": "首爾", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-10-18", "grouptype": "個人", "who": "藝聲", "country": "韓國", "city": "首爾", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-11-07", "grouptype": "個人", "who": "藝聲", "country": "馬來西亞", "city": "吉隆坡", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-11-04", "grouptype": "個人", "who": "藝聲", "country": "中國", "city": "澳門", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-11-29", "grouptype": "個人", "who": "藝聲", "country": "台灣", "city": "高雄", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-12-05", "grouptype": "個人", "who": "藝聲", "country": "新加坡", "city": "新加坡", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-12-19", "grouptype": "個人", "who": "藝聲", "country": "中國", "city": "香港", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2027-02-12", "grouptype": "個人", "who": "藝聲", "country": "日本", "city": "橫濱", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2027-02-13", "grouptype": "個人", "who": "藝聲", "country": "日本", "city": "橫濱", "title": "亞洲巡迴演唱會", "category": "巡迴演唱會", "status": "confirmed"}, {"date": "2026-01-27", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-01-29", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-01-30", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-02-03", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-02-04", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-02-05", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-03-04", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-03-05", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-03-12", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-03-14", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-03-15", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-03-17", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-03-19", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-03-20", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-03-24", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-03-28", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-03-29", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-03-31", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-04-01", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-04-07", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-04-10", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-04-12", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-04-15", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-04-16", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本》(Death Note) 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-04-19", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本Death Note》 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-05-05", "grouptype": "個人", "who": "圭賢", "country": "韓國", "city": "首爾", "title": "《死亡筆記本Death Note》 音樂劇", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-07-25", "grouptype": "個人", "who": "圭賢", "country": "中國", "city": "澳門", "title": "《弗蘭肯斯坦Frankenstein》原版交響音樂會", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-07-26", "grouptype": "個人", "who": "圭賢", "country": "中國", "city": "澳門", "title": "《弗蘭肯斯坦Frankenstein》原版交響音樂會", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-08-01", "grouptype": "個人", "who": "圭賢", "country": "中國", "city": "澳門", "title": "《弗蘭肯斯坦Frankenstein》原版交響音樂會", "category": "音樂劇/音樂會", "status": "confirmed"}, {"date": "2026-08-02", "grouptype": "個人", "who": "圭賢", "country": "中國", "city": "澳門", "title": "《弗蘭肯斯坦Frankenstein》原版交響音樂會", "category": "音樂劇/音樂會", "status": "confirmed"}];
+</script>
+
+<script>
+(function(){
+  // ============ FIREBASE CONFIG ============
+  // 把你從 Firebase 主控台複製的 config 貼在這裡，取代下面整個物件
+  const firebaseConfig = {
+    apiKey: "AIzaSyALt62DISb1VCit15x_KqkeVdGLQIiPW-g",
+    authDomain: "sj-schedule.firebaseapp.com",
+    projectId: "sj-schedule",
+    storageBucket: "sj-schedule.firebasestorage.app",
+    messagingSenderId: "665278704580",
+    appId: "1:665278704580:web:cc6730c8dae23bb8cc9291"
+  };
+  const FIREBASE_ENABLED = firebaseConfig.apiKey !== "PASTE_YOUR_API_KEY";
+  const EVENTS_COLLECTION = "sj_schedule";
+  const META_DOC_PATH = "sj_schedule_meta/settings";
+
+  let db = null;
+  let auth = null;
+  if (FIREBASE_ENABLED) {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    auth = firebase.auth();
+  }
+
+  const STATUS_LABEL = {confirmed:"確定", tentative:"未確定", cancelled:"已取消"};
+  const STATUS_CLASS = {confirmed:"confirmed", tentative:"tentative", cancelled:"cancelled"};
+  const WHO_ORDER = ["大隊","83z","KRY","D&E","LSS","利特","希澈","藝聲","神童","銀赫","東海","始源","厲旭","圭賢"];
+
+  function whoKeyOf(e){
+    // "大隊" is a bucket for full-group entries (who is usually 全員 / (非全員))
+    if(e.grouptype === "大隊") return "大隊";
+    return e.who || "";
+  }
+  function matchesWhoKey(e, key){
+    if(key === "大隊") return e.grouptype === "大隊";
+    return e.who === key;
+  }
+
+  let events = [];
+  let isAdmin = false;
+  let sortKey = "date";
+  let sortDir = "asc";
+  let expandedId = null;
+  let activeWhoFilters = new Set();
+  let activeGrouptype = "";
+  let heroSettings = {image:"", x:50, y:50};
+  let unsubEvents = null;
+  let unsubMeta = null;
+
+  const $ = id => document.getElementById(id);
+
+  function toast(msg){
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(()=>t.classList.remove("show"), 2400);
+  }
+
+  function escapeHtml(s){
+    if(s===undefined||s===null) return "";
+    return String(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+  }
+
+  function uid(){ return 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+  // ---------- Firebase / local notice ----------
+  function renderFbNotice(){
+    const el = $("fbNotice");
+    if(FIREBASE_ENABLED){
+      el.style.display = "none";
+    } else {
+      el.style.display = "block";
+      el.className = "notice warn";
+      el.innerHTML = `<b>尚未連接 Firebase</b>：目前顯示的是內建範例資料，僅供預覽格式，你的修改不會被儲存、朋友也看不到你的更新。請把 Firebase config 貼給我，我會幫你接上去，之後才會即時同步。`;
+    }
+  }
+
+  // ============ Data loading ============
+  async function loadEvents(){
+    if(!FIREBASE_ENABLED){
+      events = SEED_DATA.map(e=>({...e, id: uid(), source:"", notes:""}));
+      renderAll();
+      return;
+    }
+    unsubEvents = db.collection(EVENTS_COLLECTION).onSnapshot(async (snap)=>{
+      events = snap.docs.map(d=>({id:d.id, ...d.data()}));
+      if(events.length === 0){
+        await seedInitialData();
+        return;
+      }
+      renderAll();
+    }, (err)=>{
+      toast("讀取資料失敗：" + err.message);
+    });
+  }
+
+  async function seedInitialData(){
+    try{
+      const batchSize = 400;
+      let batch = db.batch();
+      let count = 0;
+      SEED_DATA.forEach(e=>{
+        const ref = db.collection(EVENTS_COLLECTION).doc();
+        batch.set(ref, {...e, source:"", notes:""});
+        count++;
+      });
+      await batch.commit();
+      toast("已匯入初始行程資料");
+    }catch(e){
+      toast("匯入初始資料失敗：" + e.message);
+    }
+  }
+
+  async function saveEventToDb(payload, id){
+    if(!FIREBASE_ENABLED){
+      if(id){
+        const idx = events.findIndex(e=>e.id===id);
+        if(idx>-1) events[idx] = {...payload, id};
+      } else {
+        events.push({...payload, id: uid()});
+      }
+      renderAll();
+      toast("已儲存（未連接 Firebase，僅暫存於此頁面）");
+      return;
+    }
+    if(id){
+      await db.collection(EVENTS_COLLECTION).doc(id).set(payload, {merge:true});
+    } else {
+      await db.collection(EVENTS_COLLECTION).add(payload);
+    }
+  }
+
+  async function deleteEventFromDb(id){
+    if(!FIREBASE_ENABLED){
+      events = events.filter(e=>e.id!==id);
+      renderAll();
+      toast("已刪除（未連接 Firebase，僅暫存於此頁面）");
+      return;
+    }
+    await db.collection(EVENTS_COLLECTION).doc(id).delete();
+  }
+
+  // ---------- Meta (pin + hero image) ----------
+  async function loadMeta(){
+    if(!FIREBASE_ENABLED){
+      renderHero();
+      return;
+    }
+    unsubMeta = db.doc(META_DOC_PATH).onSnapshot((doc)=>{
+      const data = doc.data() || {};
+      heroSettings = {
+        image: data.heroImage || "",
+        x: data.heroX !== undefined ? data.heroX : 50,
+        y: data.heroY !== undefined ? data.heroY : 50
+      };
+      renderHero();
+    }, (err)=>{
+      toast("讀取設定失敗：" + err.message);
+    });
+  }
+
+  async function getPin(){
+    if(!FIREBASE_ENABLED) return null;
+    try{
+      const doc = await db.doc(META_DOC_PATH).get();
+      const data = doc.data() || {};
+      return data.adminPin || null;
+    }catch(e){ return null; }
+  }
+
+  async function setPin(pin){
+    if(!FIREBASE_ENABLED) return;
+    await db.doc(META_DOC_PATH).set({adminPin: pin}, {merge:true});
+  }
+
+  async function saveHeroSettings(){
+    if(!FIREBASE_ENABLED){
+      renderHero();
+      return;
+    }
+    await db.doc(META_DOC_PATH).set({
+      heroImage: heroSettings.image,
+      heroX: heroSettings.x,
+      heroY: heroSettings.y
+    }, {merge:true});
+  }
+
+  // ============ Hero image ============
+  function renderHero(){
+    const img = $("heroImg");
+    const empty = $("heroEmpty");
+    if(heroSettings.image){
+      img.src = heroSettings.image;
+      img.style.display = "block";
+      empty.style.display = "none";
+    } else {
+      img.style.display = "none";
+      empty.style.display = "flex";
+    }
+    // Map slider 0-100 to a -15%..+15% pan range so movement is always visible,
+    // regardless of the source photo's own aspect ratio.
+    const panX = ((heroSettings.x - 50) / 50) * -35;
+    const panY = ((heroSettings.y - 50) / 50) * -35;
+    document.getElementById("hero").style.setProperty("--panx", panX + "%");
+    document.getElementById("hero").style.setProperty("--pany", panY + "%");
+    $("heroPosX").value = heroSettings.x;
+    $("heroPosY").value = heroSettings.y;
+  }
+
+  function compressImage(file, maxW, quality){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onload = (e)=>{
+        const img = new Image();
+        img.onload = ()=>{
+          let w = img.width, h = img.height;
+          if(w > maxW){
+            h = Math.round(h * (maxW / w));
+            w = maxW;
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handleHeroFile(file){
+    if(!file) return;
+    toast("圖片處理中…");
+    try{
+      let quality = 0.82;
+      let dataUrl = await compressImage(file, 1400, quality);
+      while(dataUrl.length > 900000 && quality > 0.4){
+        quality -= 0.12;
+        dataUrl = await compressImage(file, 1400, quality);
+      }
+      if(dataUrl.length > 900000){
+        toast("圖片太大，請換一張較小的圖片");
+        return;
+      }
+      heroSettings.image = dataUrl;
+      await saveHeroSettings();
+      renderHero();
+      toast("圖片已更新");
+    }catch(e){
+      toast("圖片處理失敗：" + e.message);
+    }
+  }
+
+  // ============ Filtering / sorting ============
+  function getFiltered(){
+    const search = $("fSearch").value.trim().toLowerCase();
+    const from = $("fFrom").value;
+    const to = $("fTo").value;
+    const country = $("fCountry").value;
+    const city = $("fCity").value;
+    const category = $("fCategory").value;
+    const status = $("fStatus").value;
+
+    return events.filter(e=>{
+      if(search){
+        const hay = [e.title,e.notes,e.who].join(" ").toLowerCase();
+        if(!hay.includes(search)) return false;
+      }
+      if(from && e.date < from) return false;
+      if(to && e.date > to) return false;
+      if(country && e.country !== country) return false;
+      if(city && e.city !== city) return false;
+      if(category && e.category !== category) return false;
+      if(status && e.status !== status) return false;
+      if(activeGrouptype && e.grouptype !== activeGrouptype) return false;
+      if(activeWhoFilters.size > 0 && ![...activeWhoFilters].some(k=>matchesWhoKey(e,k))) return false;
+      return true;
+    }).sort((a,b)=>{
+      let av = a[sortKey] || "";
+      let bv = b[sortKey] || "";
+      if(sortKey === "date"){ av = a.date; bv = b.date; }
+      if(av < bv) return sortDir === "asc" ? -1 : 1;
+      if(av > bv) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+  }
+
+  function populateSelectOptions(){
+    const countries = [...new Set(events.map(e=>e.country).filter(Boolean))].sort();
+    const cities = [...new Set(events.map(e=>e.city).filter(Boolean))].sort();
+    const categories = [...new Set(events.map(e=>e.category).filter(Boolean))].sort();
+
+    const fCountry = $("fCountry"); const curCountry = fCountry.value;
+    fCountry.innerHTML = '<option value="">全部</option>' + countries.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+    fCountry.value = curCountry;
+
+    const fCity = $("fCity"); const curCity = fCity.value;
+    fCity.innerHTML = '<option value="">全部</option>' + cities.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+    fCity.value = curCity;
+
+    const fCategory = $("fCategory"); const curCat = fCategory.value;
+    fCategory.innerHTML = '<option value="">全部</option>' + categories.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+    fCategory.value = curCat;
+  }
+
+  function renderChips(){
+    const grouptypes = [...new Set(events.map(e=>e.grouptype).filter(Boolean))];
+    const order = ["個人","小分隊","大隊"];
+    grouptypes.sort((a,b)=>order.indexOf(a)-order.indexOf(b));
+    const gEl = $("grouptypeChips");
+    gEl.innerHTML = "";
+    grouptypes.forEach(g=>{
+      const chip = document.createElement("div");
+      chip.className = "chip" + (activeGrouptype===g ? " active":"");
+      chip.textContent = g;
+      chip.onclick = ()=>{ activeGrouptype = activeGrouptype===g ? "" : g; renderAll(); };
+      gEl.appendChild(chip);
+    });
+
+    const whos = [...new Set(events.map(e=>whoKeyOf(e)).filter(Boolean))];
+    const extra = whos.filter(w=>!WHO_ORDER.includes(w)).sort();
+    const wEl = $("whoChips");
+    wEl.innerHTML = "";
+    [...WHO_ORDER, ...extra].forEach(w=>{
+      const chip = document.createElement("div");
+      const hasData = whos.includes(w);
+      chip.className = "chip" + (activeWhoFilters.has(w) ? " active":"") + (hasData ? "" : " chip-empty");
+      chip.textContent = w;
+      chip.onclick = ()=>{
+        if(activeWhoFilters.has(w)) activeWhoFilters.delete(w); else activeWhoFilters.add(w);
+        renderAll();
+      };
+      wEl.appendChild(chip);
+    });
+  }
+
+  // ============ Subtotal ============
+  function renderSubtotal(list){
+    $("subtotalNum").textContent = list.length;
+    $("subtotalTotal").textContent = `資料庫共 ${events.length} 場`;
+
+    function breakdown(field){
+      const map = {};
+      list.forEach(e=>{
+        const key = e[field] || "—";
+        map[key] = (map[key]||0) + 1;
+      });
+      return Object.entries(map).sort((a,b)=>b[1]-a[1]);
+    }
+
+    function whoBreakdown(){
+      const map = {};
+      list.forEach(e=>{
+        const key = whoKeyOf(e) || "—";
+        map[key] = (map[key]||0) + 1;
+      });
+      const ordered = WHO_ORDER.map(w=>[w, map[w]||0]);
+      const extra = Object.keys(map).filter(k=>!WHO_ORDER.includes(k)).sort().map(k=>[k, map[k]]);
+      return [...ordered, ...extra];
+    }
+
+    function renderPills(containerId, entries){
+      const el = $(containerId);
+      el.innerHTML = "";
+      if(entries.length === 0){
+        el.innerHTML = '<span style="color:var(--paper-dim); font-size:12px;">—</span>';
+        return;
+      }
+      entries.forEach(([key,count])=>{
+        const pill = document.createElement("span");
+        pill.className = "subtotal-pill";
+        if(count === 0) pill.style.opacity = "0.45";
+        pill.innerHTML = `${escapeHtml(key)} <b>${count}</b>`;
+        el.appendChild(pill);
+      });
+    }
+
+    renderPills("subtotalByCategory", breakdown("category"));
+    renderPills("subtotalByWho", whoBreakdown());
+    renderPills("subtotalByCountry", breakdown("country"));
+  }
+
+  // ============ Table ============
+  function renderTable(list){
+    const tbody = $("tbody");
+    tbody.innerHTML = "";
+    $("emptyState").style.display = list.length === 0 ? "block" : "none";
+
+    document.querySelectorAll("thead th[data-sort]").forEach(th=>{
+      const arrow = th.querySelector(".arrow");
+      arrow.textContent = th.dataset.sort === sortKey ? (sortDir==="asc"?"▲":"▼") : "";
+    });
+
+    list.forEach(e=>{
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="date">${escapeHtml(e.date||"")}</td>
+        <td><span class="grouptag">${escapeHtml(e.grouptype||"—")}</span></td>
+        <td>${escapeHtml(e.who||"—")}</td>
+        <td>${escapeHtml([e.country,e.city].filter(Boolean).join(" / ")||"—")}</td>
+        <td>${escapeHtml(e.title||"—")}</td>
+        <td>${escapeHtml(e.category||"—")}</td>
+        <td><span class="tag ${STATUS_CLASS[e.status]||'tentative'}">${STATUS_LABEL[e.status]||"未確定"}</span></td>
+      `;
+      tr.onclick = ()=>{ expandedId = expandedId===e.id ? null : e.id; renderAll(); };
+      tbody.appendChild(tr);
+
+      if(expandedId === e.id){
+        const dtr = document.createElement("tr");
+        dtr.className = "detail-row";
+        const td = document.createElement("td");
+        td.colSpan = 7;
+        td.innerHTML = `
+          <div class="detail-grid">
+            <div class="detail-item"><div class="k">來源連結</div><div class="v">${e.source ? `<a href="${escapeHtml(e.source)}" target="_blank" rel="noopener">開啟連結 ↗</a>` : "—"}</div></div>
+            <div class="detail-item" style="grid-column:1/-1;"><div class="k">備註</div><div class="v">${escapeHtml(e.notes||"—")}</div></div>
+          </div>
+          <div class="detail-actions" id="detailActions"></div>
+        `;
+        dtr.appendChild(td);
+        tbody.appendChild(dtr);
+        if(isAdmin){
+          const actions = td.querySelector("#detailActions");
+          const editBtn = document.createElement("button");
+          editBtn.className = "btn ghost sm";
+          editBtn.textContent = "編輯";
+          editBtn.onclick = (ev)=>{ ev.stopPropagation(); openEditModal(e); };
+          actions.appendChild(editBtn);
+        }
+      }
+    });
+  }
+
+  function renderNextFlap(){
+    const today = new Date().toISOString().slice(0,10);
+    const upcoming = events
+      .filter(e=>e.status!=="cancelled" && e.date >= today)
+      .sort((a,b)=> a.date.localeCompare(b.date))[0];
+    const el = $("nextFlap");
+    if(!upcoming){
+      el.innerHTML = `<div class="flap-empty">目前沒有即將到來的行程</div>`;
+      return;
+    }
+    el.innerHTML = `
+      <div class="flap-cell"><div class="flap-label">Next Up</div><div class="flap-value accent">${escapeHtml(upcoming.title||"")}</div></div>
+      <div class="flap-cell"><div class="flap-label">Date</div><div class="flap-value">${escapeHtml(upcoming.date)}</div></div>
+      <div class="flap-cell"><div class="flap-label">Who</div><div class="flap-value">${escapeHtml(upcoming.who||"—")}</div></div>
+      <div class="flap-cell"><div class="flap-label">Location</div><div class="flap-value">${escapeHtml([upcoming.country,upcoming.city].filter(Boolean).join(" / ")||"—")}</div></div>
+    `;
+  }
+
+  function renderAll(){
+    populateSelectOptions();
+    renderChips();
+    const list = getFiltered();
+    renderSubtotal(list);
+    renderTable(list);
+    renderNextFlap();
+  }
+
+  // ============ Add/Edit modal ============
+  function openEditModal(e){
+    $("modalTitle").textContent = e ? "編輯行程" : "新增行程";
+    $("editId").value = e ? e.id : "";
+    $("mDate").value = e ? e.date : "";
+    $("mStatus").value = e ? (e.status||"confirmed") : "confirmed";
+    $("mGrouptype").value = e ? (e.grouptype||"個人") : "個人";
+    $("mWho").value = e ? (e.who||"") : "";
+    $("mCountry").value = e ? (e.country||"") : "";
+    $("mCity").value = e ? (e.city||"") : "";
+    $("mTitle").value = e ? (e.title||"") : "";
+    $("mCategory").value = e ? (e.category||"") : "";
+    $("mSource").value = e ? (e.source||"") : "";
+    $("mNotes").value = e ? (e.notes||"") : "";
+    $("deleteEvent").style.display = e ? "inline-block" : "none";
+    $("editOverlay").classList.add("show");
+  }
+  function closeEditModal(){ $("editOverlay").classList.remove("show"); }
+
+  async function saveEvent(){
+    const date = $("mDate").value;
+    const title = $("mTitle").value.trim();
+    const who = $("mWho").value.trim();
+    if(!date || !title || !who){
+      toast("請至少填寫日期、主角與活動名稱");
+      return;
+    }
+    const id = $("editId").value;
+    const payload = {
+      date,
+      status: $("mStatus").value,
+      grouptype: $("mGrouptype").value,
+      who,
+      country: $("mCountry").value.trim(),
+      city: $("mCity").value.trim(),
+      title,
+      category: $("mCategory").value.trim(),
+      source: $("mSource").value.trim(),
+      notes: $("mNotes").value.trim(),
+    };
+    try{
+      await saveEventToDb(payload, id || null);
+      closeEditModal();
+      if(FIREBASE_ENABLED) toast("已儲存");
+    }catch(e){
+      toast("儲存失敗：" + e.message);
+    }
+  }
+
+  async function deleteEvent(){
+    const id = $("editId").value;
+    if(!id) return;
+    if(!confirm("確定要刪除這筆行程嗎？")) return;
+    try{
+      await deleteEventFromDb(id);
+      closeEditModal();
+      expandedId = null;
+      if(FIREBASE_ENABLED) toast("已刪除");
+    }catch(e){
+      toast("刪除失敗：" + e.message);
+    }
+  }
+
+  // ============ Admin / PIN ============
+  function openPinModal(mode){
+    $("pinInput").value = "";
+    if(mode === "set"){
+      $("pinTitle").textContent = "設定管理密碼";
+      $("pinHint").textContent = "第一次使用，請設定一組管理密碼，之後新增/編輯/刪除行程與更換表頭圖片都需要它。此密碼僅供簡易防呆，非高強度安全機制。";
+    } else {
+      $("pinTitle").textContent = "輸入管理密碼";
+      $("pinHint").textContent = "";
+    }
+    $("pinOverlay").dataset.mode = mode;
+    $("pinOverlay").classList.add("show");
+    setTimeout(()=>$("pinInput").focus(), 50);
+  }
+  function closePinModal(){ $("pinOverlay").classList.remove("show"); }
+
+  async function confirmPin(){
+    const mode = $("pinOverlay").dataset.mode;
+    const val = $("pinInput").value;
+    if(!val){ toast("請輸入密碼"); return; }
+    if(!FIREBASE_ENABLED){
+      isAdmin = true;
+      toast("管理模式已開啟（未連接 Firebase，僅本頁暫時生效）");
+      closePinModal(); updateAdminUI(); renderAll();
+      return;
+    }
+    if(mode === "set"){
+      if(val.length < 4){ toast("密碼至少 4 碼"); return; }
+      await setPin(val);
+      isAdmin = true;
+      toast("密碼已設定，管理模式已開啟");
+    } else {
+      const pin = await getPin();
+      if(pin === val){ isAdmin = true; toast("管理模式已開啟"); }
+      else { toast("密碼錯誤"); return; }
+    }
+    closePinModal();
+    updateAdminUI();
+    renderAll();
+  }
+
+  function updateAdminUI(){
+    $("addBtn").style.display = isAdmin ? "inline-block" : "none";
+    $("fixStatusBtn").style.display = isAdmin ? "inline-block" : "none";
+    $("bulkImportToggle").style.display = isAdmin ? "inline-block" : "none";
+    $("adminBtn").textContent = isAdmin ? "結束管理模式" : "管理模式";
+    $("heroEditPanel").classList.toggle("show", isAdmin);
+    if(!isAdmin) $("bulkImportPanel").style.display = "none";
+  }
+
+  function parseTableInput(raw){
+    const BULLET_RE = /^[•‧∙·◦●○\-–—*]+$/;
+    const lines = raw.split(/\r?\n/).map(l=>l.replace(/\s+$/,"")).filter(l=>l.trim().length>0);
+    const rows = lines.map(l=>
+      l.split("\t").map(c=>c.trim()).filter(c=>!BULLET_RE.test(c))
+    );
+    let startIdx = 0;
+    if(rows[0] && rows[0].join("").indexOf("年度") > -1){ startIdx = 1; }
+    const out = [];
+    for(let i=startIdx;i<rows.length;i++){
+      const cols = rows[i];
+      if(cols.length < 8) continue;
+      const [yearRaw, monthRaw, dayRaw, grouptype, who, country, city, title, category, statusRaw] = cols;
+      const y = (yearRaw||"").replace(/\D/g,"") || "2026";
+      const m = (monthRaw||"").replace(/\D/g,"");
+      const d = (dayRaw||"").replace(/\D/g,"");
+      if(!m || !d || !title) continue;
+      const date = `${y.padStart(4,"0")}-${m.padStart(2,"0")}-${d.padStart(2,"0")}`;
+      let status = "confirmed";
+      if(statusRaw){
+        if(statusRaw.indexOf("未確定") > -1) status = "tentative";
+        else if(statusRaw.indexOf("取消") > -1) status = "cancelled";
+      }
+      out.push({
+        date,
+        grouptype: grouptype || "個人",
+        who: who || "",
+        country: country || "",
+        city: city || "",
+        title: title || "",
+        category: category || "",
+        status,
+      });
+    }
+    return out;
+  }
+
+  async function runBulkImport(){
+    const raw = $("bulkImportText").value.trim();
+    const resultEl = $("bulkImportResult");
+    if(!raw){ resultEl.textContent = "請先貼上資料（JSON 或直接從 Word 表格複製貼上都可以）"; return; }
+    let list;
+    if(raw.startsWith("[")){
+      try{
+        list = JSON.parse(raw);
+        if(!Array.isArray(list)) throw new Error("最外層必須是陣列 [ ... ]");
+      }catch(e){
+        resultEl.textContent = "JSON 格式錯誤：" + e.message;
+        return;
+      }
+    } else {
+      list = parseTableInput(raw);
+      if(list.length === 0){
+        resultEl.textContent = "沒有辨認出任何一列資料，請確認欄位順序是：年度、月份、日期、類別、主角、國家、城市、活動名稱、活動類型（狀態可省略），並且是直接從 Word/Excel 表格複製貼上的。";
+        return;
+      }
+    }
+    resultEl.textContent = `處理中…（共 ${list.length} 筆）`;
+
+    function keyOf(e){ return [e.date, e.who, e.title].join("|||"); }
+    const existingByKey = {};
+    events.forEach(e=>{ existingByKey[keyOf(e)] = e; });
+
+    let added = 0, updated = 0, skipped = 0;
+
+    if(!FIREBASE_ENABLED){
+      list.forEach(item=>{
+        if(!item.date || !item.title || !item.who){ skipped++; return; }
+        const k = keyOf(item);
+        if(existingByKey[k]){
+          Object.assign(existingByKey[k], item);
+          updated++;
+        } else {
+          const newE = {...item, id: uid()};
+          events.push(newE);
+          existingByKey[k] = newE;
+          added++;
+        }
+      });
+      renderAll();
+      resultEl.textContent = `完成（未連接 Firebase，僅暫存於此頁面）：新增 ${added} 筆、更新 ${updated} 筆、略過 ${skipped} 筆`;
+      return;
+    }
+
+    try{
+      const batchSize = 400;
+      for(let i=0;i<list.length;i+=batchSize){
+        const chunk = list.slice(i,i+batchSize);
+        const batch = db.batch();
+        chunk.forEach(item=>{
+          if(!item.date || !item.title || !item.who){ skipped++; return; }
+          const k = keyOf(item);
+          const existing = existingByKey[k];
+          const payload = {
+            date: item.date,
+            grouptype: item.grouptype || "個人",
+            who: item.who,
+            country: item.country || "",
+            city: item.city || "",
+            title: item.title,
+            category: item.category || "",
+            status: item.status || "confirmed",
+            source: item.source || (existing ? existing.source : "") || "",
+            notes: item.notes || (existing ? existing.notes : "") || "",
+          };
+          if(existing){
+            batch.set(db.collection(EVENTS_COLLECTION).doc(existing.id), payload, {merge:true});
+            updated++;
+          } else {
+            const ref = db.collection(EVENTS_COLLECTION).doc();
+            batch.set(ref, payload);
+            existingByKey[k] = {id: ref.id};
+            added++;
+          }
+        });
+        await batch.commit();
+      }
+      resultEl.textContent = `完成：新增 ${added} 筆、更新 ${updated} 筆、略過 ${skipped} 筆（格式不完整）`;
+      $("bulkImportText").value = "";
+      toast(`批次匯入完成：新增 ${added} 筆、更新 ${updated} 筆`);
+    }catch(e){
+      resultEl.textContent = "匯入失敗：" + e.message;
+    }
+  }
+
+  async function fixTentativeStatus(){
+    const targets = events.filter(e=>e.status === "tentative");
+    if(targets.length === 0){
+      toast("目前沒有「未確定」的場次");
+      return;
+    }
+    if(!confirm(`將 ${targets.length} 場「未確定」的行程全部改為「確定」，確定要繼續嗎？`)) return;
+    if(!FIREBASE_ENABLED){
+      targets.forEach(e=>{ e.status = "confirmed"; });
+      renderAll();
+      toast("已修正（未連接 Firebase，僅暫存於此頁面）");
+      return;
+    }
+    try{
+      const batchSize = 400;
+      for(let i=0;i<targets.length;i+=batchSize){
+        const chunk = targets.slice(i,i+batchSize);
+        const batch = db.batch();
+        chunk.forEach(e=>{
+          batch.set(db.collection(EVENTS_COLLECTION).doc(e.id), {status:"confirmed"}, {merge:true});
+        });
+        await batch.commit();
+      }
+      toast(`已將 ${targets.length} 場行程改為「確定」`);
+    }catch(e){
+      toast("修正失敗：" + e.message);
+    }
+  }
+
+  async function toggleAdmin(){
+    if(isAdmin){
+      isAdmin = false;
+      updateAdminUI();
+      renderAll();
+      toast("已離開管理模式");
+      return;
+    }
+    const pin = await getPin();
+    openPinModal(pin ? "check" : "set");
+  }
+
+  // ============ Export ============
+  function exportExcel(){
+    const list = getFiltered();
+    if(list.length === 0){ toast("沒有可匯出的資料"); return; }
+    const rows = list.map(e=>({
+      "日期": e.date,
+      "類別": e.grouptype||"",
+      "主角": e.who||"",
+      "國家": e.country||"",
+      "城市": e.city||"",
+      "活動名稱": e.title||"",
+      "活動類型": e.category||"",
+      "狀態": STATUS_LABEL[e.status]||"",
+      "來源連結": e.source||"",
+      "備註": e.notes||"",
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws['!cols'] = [{wch:11},{wch:8},{wch:8},{wch:8},{wch:8},{wch:24},{wch:12},{wch:8},{wch:30},{wch:24}];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "行程");
+    XLSX.writeFile(wb, `SuperJunior行程_${new Date().toISOString().slice(0,10)}.xlsx`);
+    toast("已匯出 Excel（共 " + list.length + " 場）");
+  }
+
+  // ============ Wire up ============
+  function bindEvents(){
+    ["fSearch","fFrom","fTo","fCountry","fCity","fCategory","fStatus"].forEach(id=>{
+      $(id).addEventListener("input", renderAll);
+      $(id).addEventListener("change", renderAll);
+    });
+    $("clearFilters").onclick = ()=>{
+      $("fSearch").value=""; $("fFrom").value=""; $("fTo").value="";
+      $("fCountry").value=""; $("fCity").value=""; $("fCategory").value=""; $("fStatus").value="";
+      activeWhoFilters = new Set();
+      activeGrouptype = "";
+      renderAll();
+    };
+    document.querySelectorAll("thead th[data-sort]").forEach(th=>{
+      th.onclick = ()=>{
+        const key = th.dataset.sort;
+        if(sortKey === key){ sortDir = sortDir === "asc" ? "desc" : "asc"; }
+        else { sortKey = key; sortDir = "asc"; }
+        renderAll();
+      };
+    });
+    $("exportBtn").onclick = exportExcel;
+    $("fixStatusBtn").onclick = fixTentativeStatus;
+    $("bulkImportToggle").onclick = ()=>{
+      const panel = $("bulkImportPanel");
+      panel.style.display = panel.style.display === "none" ? "block" : "none";
+    };
+    $("bulkImportBtn").onclick = runBulkImport;
+    $("bulkImportCancel").onclick = ()=>{
+      $("bulkImportPanel").style.display = "none";
+      $("bulkImportText").value = "";
+      $("bulkImportResult").textContent = "";
+    };
+    $("adminBtn").onclick = toggleAdmin;
+    $("addBtn").onclick = ()=>openEditModal(null);
+    $("cancelEdit").onclick = closeEditModal;
+    $("saveEvent").onclick = saveEvent;
+    $("deleteEvent").onclick = deleteEvent;
+    $("pinCancel").onclick = closePinModal;
+    $("pinConfirm").onclick = confirmPin;
+    $("pinInput").addEventListener("keydown", (e)=>{ if(e.key==="Enter") confirmPin(); });
+    $("editOverlay").addEventListener("click",(e)=>{ if(e.target.id==="editOverlay") closeEditModal(); });
+    $("pinOverlay").addEventListener("click",(e)=>{ if(e.target.id==="pinOverlay") closePinModal(); });
+
+    $("heroFileInput").addEventListener("change", (e)=>{
+      const file = e.target.files[0];
+      if(file) handleHeroFile(file);
+    });
+    $("heroPosX").addEventListener("input", (e)=>{
+      heroSettings.x = parseInt(e.target.value,10);
+      renderHero();
+    });
+    $("heroPosX").addEventListener("change", saveHeroSettings);
+    $("heroPosY").addEventListener("input", (e)=>{
+      heroSettings.y = parseInt(e.target.value,10);
+      renderHero();
+    });
+    $("heroPosY").addEventListener("change", saveHeroSettings);
+    $("heroRemoveBtn").addEventListener("click", async ()=>{
+      heroSettings.image = "";
+      await saveHeroSettings();
+      renderHero();
+      toast("已移除圖片");
+    });
+  }
+
+  async function init(){
+    renderFbNotice();
+    bindEvents();
+    updateAdminUI();
+    await loadMeta();
+    await loadEvents();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
