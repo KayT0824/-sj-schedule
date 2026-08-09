@@ -11,6 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
   :root{
     --ink:#0e1016;
@@ -443,12 +444,13 @@
 
 <div class="overlay" id="pinOverlay">
   <div class="modal pin-box">
-    <h3 id="pinTitle">輸入管理密碼</h3>
-    <div class="field"><input type="password" id="pinInput" placeholder="密碼"></div>
-    <div class="hint" id="pinHint"></div>
+    <h3 id="pinTitle">管理員登入</h3>
+    <div class="field"><input type="email" id="loginEmail" placeholder="管理員 Email" autocomplete="username"></div>
+    <div class="field"><input type="password" id="pinInput" placeholder="密碼" autocomplete="current-password"></div>
+    <div class="hint" id="pinHint">用你在 Firebase 後台設定的管理帳號登入，登入後才能新增/編輯/刪除行程與更換表頭圖片。</div>
     <div class="modal-footer">
       <button class="btn ghost" id="pinCancel">取消</button>
-      <button class="btn" id="pinConfirm">確認</button>
+      <button class="btn" id="pinConfirm">登入</button>
     </div>
   </div>
 </div>
@@ -618,20 +620,6 @@ const SEED_DATA = [{"date": "2026-07-11", "grouptype": "個人", "who": "厲旭"
     }, (err)=>{
       toast("讀取設定失敗：" + err.message);
     });
-  }
-
-  async function getPin(){
-    if(!FIREBASE_ENABLED) return null;
-    try{
-      const doc = await db.doc(META_DOC_PATH).get();
-      const data = doc.data() || {};
-      return data.adminPin || null;
-    }catch(e){ return null; }
-  }
-
-  async function setPin(pin){
-    if(!FIREBASE_ENABLED) return;
-    await db.doc(META_DOC_PATH).set({adminPin: pin}, {merge:true});
   }
 
   async function saveHeroSettings(){
@@ -986,45 +974,42 @@ const SEED_DATA = [{"date": "2026-07-11", "grouptype": "個人", "who": "厲旭"
     }
   }
 
-  // ============ Admin / PIN ============
-  function openPinModal(mode){
+  // ============ Admin / Auth ============
+  function openLoginModal(){
+    $("loginEmail").value = "";
     $("pinInput").value = "";
-    if(mode === "set"){
-      $("pinTitle").textContent = "設定管理密碼";
-      $("pinHint").textContent = "第一次使用，請設定一組管理密碼，之後新增/編輯/刪除行程與更換表頭圖片都需要它。此密碼僅供簡易防呆，非高強度安全機制。";
-    } else {
-      $("pinTitle").textContent = "輸入管理密碼";
-      $("pinHint").textContent = "";
-    }
-    $("pinOverlay").dataset.mode = mode;
+    $("pinTitle").textContent = "管理員登入";
+    $("pinHint").textContent = "用你在 Firebase 後台設定的管理帳號登入，登入後才能新增/編輯/刪除行程與更換表頭圖片。";
     $("pinOverlay").classList.add("show");
-    setTimeout(()=>$("pinInput").focus(), 50);
+    setTimeout(()=>$("loginEmail").focus(), 50);
   }
   function closePinModal(){ $("pinOverlay").classList.remove("show"); }
 
   async function confirmPin(){
-    const mode = $("pinOverlay").dataset.mode;
+    const email = $("loginEmail").value.trim();
     const val = $("pinInput").value;
-    if(!val){ toast("請輸入密碼"); return; }
     if(!FIREBASE_ENABLED){
+      if(!val){ toast("請輸入密碼"); return; }
       isAdmin = true;
       toast("管理模式已開啟（未連接 Firebase，僅本頁暫時生效）");
       closePinModal(); updateAdminUI(); renderAll();
       return;
     }
-    if(mode === "set"){
-      if(val.length < 4){ toast("密碼至少 4 碼"); return; }
-      await setPin(val);
-      isAdmin = true;
-      toast("密碼已設定，管理模式已開啟");
-    } else {
-      const pin = await getPin();
-      if(pin === val){ isAdmin = true; toast("管理模式已開啟"); }
-      else { toast("密碼錯誤"); return; }
+    if(!email || !val){ toast("請輸入 Email 與密碼"); return; }
+    try{
+      await auth.signInWithEmailAndPassword(email, val);
+      closePinModal();
+      toast("登入成功，管理模式已開啟");
+    }catch(e){
+      const map = {
+        "auth/wrong-password":"密碼錯誤",
+        "auth/invalid-credential":"帳號或密碼錯誤",
+        "auth/user-not-found":"找不到這個管理帳號",
+        "auth/too-many-requests":"嘗試次數過多，請稍後再試",
+        "auth/invalid-email":"Email 格式不正確",
+      };
+      toast(map[e.code] || ("登入失敗：" + e.message));
     }
-    closePinModal();
-    updateAdminUI();
-    renderAll();
   }
 
   function updateAdminUI(){
@@ -1192,14 +1177,17 @@ const SEED_DATA = [{"date": "2026-07-11", "grouptype": "個人", "who": "厲旭"
 
   async function toggleAdmin(){
     if(isAdmin){
-      isAdmin = false;
-      updateAdminUI();
-      renderAll();
+      if(FIREBASE_ENABLED){
+        await auth.signOut();
+      } else {
+        isAdmin = false;
+        updateAdminUI();
+        renderAll();
+      }
       toast("已離開管理模式");
       return;
     }
-    const pin = await getPin();
-    openPinModal(pin ? "check" : "set");
+    openLoginModal();
   }
 
   // ============ Export ============
@@ -1267,6 +1255,7 @@ const SEED_DATA = [{"date": "2026-07-11", "grouptype": "個人", "who": "厲旭"
     $("pinCancel").onclick = closePinModal;
     $("pinConfirm").onclick = confirmPin;
     $("pinInput").addEventListener("keydown", (e)=>{ if(e.key==="Enter") confirmPin(); });
+    $("loginEmail").addEventListener("keydown", (e)=>{ if(e.key==="Enter") $("pinInput").focus(); });
     $("editOverlay").addEventListener("click",(e)=>{ if(e.target.id==="editOverlay") closeEditModal(); });
     $("pinOverlay").addEventListener("click",(e)=>{ if(e.target.id==="pinOverlay") closePinModal(); });
 
@@ -1296,6 +1285,13 @@ const SEED_DATA = [{"date": "2026-07-11", "grouptype": "個人", "who": "厲旭"
     renderFbNotice();
     bindEvents();
     updateAdminUI();
+    if(FIREBASE_ENABLED){
+      auth.onAuthStateChanged((user)=>{
+        isAdmin = !!user;
+        updateAdminUI();
+        renderAll();
+      });
+    }
     await loadMeta();
     await loadEvents();
   }
