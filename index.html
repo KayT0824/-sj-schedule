@@ -339,6 +339,7 @@
   <div class="subtotal">
     <div class="subtotal-head">
       <div class="subtotal-count">篩選結果小計：<span class="n" id="subtotalNum">0</span> 場</div>
+      <button class="btn ghost sm" id="showAllBtn" style="display:none;">顯示全部</button>
       <div class="subtotal-total" id="subtotalTotal"></div>
     </div>
     <div class="subtotal-groups">
@@ -509,6 +510,7 @@ const SEED_DATA = [{"date": "2026-07-11", "grouptype": "個人", "who": "厲旭"
   let heroSettings = {image:"", x:50, y:50};
   let unsubEvents = null;
   let unsubMeta = null;
+  let showAll = false;
 
   const $ = id => document.getElementById(id);
 
@@ -788,9 +790,21 @@ const SEED_DATA = [{"date": "2026-07-11", "grouptype": "個人", "who": "厲旭"
   }
 
   // ============ Subtotal ============
-  function renderSubtotal(list){
+  function renderSubtotal(list, showList, totalCount){
+    const showAllBtn = $("showAllBtn");
+    if(!showList){
+      $("subtotalNum").textContent = "—";
+      $("subtotalTotal").textContent = `資料庫共 ${totalCount} 場`;
+      ["subtotalByCategory","subtotalByWho","subtotalByCountry"].forEach(id=>{
+        $(id).innerHTML = '<span style="color:var(--paper-dim); font-size:12px;">套用篩選或點右上「顯示全部」查看</span>';
+      });
+      showAllBtn.style.display = "inline-flex";
+      showAllBtn.textContent = `顯示全部（共 ${totalCount} 場）`;
+      return;
+    }
+    showAllBtn.style.display = "none";
     $("subtotalNum").textContent = list.length;
-    $("subtotalTotal").textContent = `資料庫共 ${events.length} 場`;
+    $("subtotalTotal").textContent = `資料庫共 ${totalCount} 場`;
 
     function breakdown(field){
       const map = {};
@@ -834,7 +848,16 @@ const SEED_DATA = [{"date": "2026-07-11", "grouptype": "個人", "who": "厲旭"
   }
 
   // ============ Table ============
-  function renderTable(list){
+  function renderTable(list, showList){
+    if(!showList){
+      $("tbody").innerHTML = "";
+      $("emptyState").style.display = "block";
+      $("emptyState").innerHTML = `
+        <div class="big">尚未套用篩選條件</div>
+        <div>用上面的欄位縮小範圍，或點小計右上角「顯示全部」一次看所有行程。</div>
+      `;
+      return;
+    }
     const tbody = $("tbody");
     tbody.innerHTML = "";
     $("emptyState").style.display = list.length === 0 ? "block" : "none";
@@ -902,12 +925,28 @@ const SEED_DATA = [{"date": "2026-07-11", "grouptype": "個人", "who": "厲旭"
     `;
   }
 
+  function hasActiveFilters(){
+    return !!(
+      $("fSearch").value.trim() ||
+      $("fFrom").value ||
+      $("fTo").value ||
+      $("fCountry").value ||
+      $("fCity").value ||
+      $("fCategory").value ||
+      $("fStatus").value ||
+      activeGrouptype ||
+      activeWhoFilters.size > 0
+    );
+  }
+
   function renderAll(){
     populateSelectOptions();
     renderChips();
+    const filtersActive = hasActiveFilters();
     const list = getFiltered();
-    renderSubtotal(list);
-    renderTable(list);
+    const showList = filtersActive || showAll;
+    renderSubtotal(showList ? list : [], showList, events.length);
+    renderTable(showList ? list : [], showList);
     renderNextFlap();
   }
 
@@ -1225,6 +1264,11 @@ const SEED_DATA = [{"date": "2026-07-11", "grouptype": "個人", "who": "厲旭"
       $("fCountry").value=""; $("fCity").value=""; $("fCategory").value=""; $("fStatus").value="";
       activeWhoFilters = new Set();
       activeGrouptype = "";
+      showAll = false;
+      renderAll();
+    };
+    $("showAllBtn").onclick = ()=>{
+      showAll = true;
       renderAll();
     };
     document.querySelectorAll("thead th[data-sort]").forEach(th=>{
