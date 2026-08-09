@@ -183,6 +183,14 @@
   .subtotal-pill b{color:var(--sapphire); font-family:'JetBrains Mono';}
 
   .toolbar{display:flex; justify-content:flex-end; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;}
+  .admin-panel{
+    background:rgba(232,178,58,0.06); border:1px dashed var(--gold); border-radius:var(--radius);
+    padding:14px 16px; margin-bottom:14px;
+  }
+  .admin-panel-head{margin-bottom:10px;}
+  .admin-panel-title{font-size:12px; font-weight:700; color:var(--gold); letter-spacing:0.5px; display:block; margin-bottom:4px;}
+  .admin-panel-note{font-size:11.5px; color:var(--paper-dim); line-height:1.6; display:block;}
+  .admin-panel .actions{display:flex; gap:8px; flex-wrap:wrap;}
   .actions{display:flex; gap:8px; flex-wrap:wrap;}
 
   /* ---------- Table ---------- */
@@ -361,9 +369,18 @@
   <div class="toolbar">
     <div class="actions">
       <button class="btn ghost sm" id="exportBtn">匯出 Excel</button>
-      <button class="btn ghost sm" id="fixStatusBtn" style="display:none;">將「未確定」全部改為「確定」</button>
-      <button class="btn ghost sm" id="bulkImportToggle" style="display:none;">批次匯入/更新</button>
-      <button class="btn sm" id="addBtn" style="display:none;">＋ 新增行程</button>
+    </div>
+  </div>
+
+  <div class="admin-panel" id="adminToolsPanel" style="display:none;">
+    <div class="admin-panel-head">
+      <span class="admin-panel-title">⚙ 管理工具</span>
+      <span class="admin-panel-note">新增/匯入資料前，請留意：日期格式 YYYY-MM-DD、主角請用固定名稱（大隊/83z/KRY/D&amp;E/LSS/利特/希澈/藝聲/神童/銀赫/東海/始源/厲旭/圭賢）、類別統一填「個人/小分隊/大隊」，避免同一人出現不同寫法造成篩選跑掉。</span>
+    </div>
+    <div class="actions">
+      <button class="btn ghost sm" id="fixStatusBtn">將「未確定」全部改為「確定」</button>
+      <button class="btn ghost sm" id="bulkImportToggle">批次匯入/更新</button>
+      <button class="btn sm" id="addBtn">＋ 新增行程</button>
     </div>
   </div>
 
@@ -1052,9 +1069,7 @@ const SEED_DATA = [{"date": "2026-07-11", "grouptype": "個人", "who": "厲旭"
   }
 
   function updateAdminUI(){
-    $("addBtn").style.display = isAdmin ? "inline-block" : "none";
-    $("fixStatusBtn").style.display = isAdmin ? "inline-block" : "none";
-    $("bulkImportToggle").style.display = isAdmin ? "inline-block" : "none";
+    $("adminToolsPanel").style.display = isAdmin ? "block" : "none";
     $("adminBtn").textContent = isAdmin ? "結束管理模式" : "管理模式";
     $("heroEditPanel").classList.toggle("show", isAdmin);
     if(!isAdmin) $("bulkImportPanel").style.display = "none";
