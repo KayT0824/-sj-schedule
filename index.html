@@ -452,6 +452,10 @@
     <div class="field"><label>活動類型</label><input type="text" id="mCategory" placeholder="例如 巡迴演唱會 / Fancon / 音樂節"></div>
     <div class="field"><label>來源連結</label><input type="text" id="mSource" placeholder="https://..."></div>
     <div class="field"><label>備註</label><textarea id="mNotes" placeholder="其他資訊、購票資訊等"></textarea></div>
+    <div class="field" style="flex-direction:row; align-items:center; gap:8px;">
+      <input type="checkbox" id="mPrivate" style="width:16px; height:16px; accent-color:var(--coral);">
+      <label for="mPrivate" style="margin:0; cursor:pointer;">🔒 不公開（小道消息／未證實，只有管理模式看得到，一般訪客不會顯示）</label>
+    </div>
     <div class="modal-footer">
       <button class="btn ghost" id="cancelEdit">取消</button>
       <button class="btn danger" id="deleteEvent" style="display:none;">刪除</button>
@@ -734,6 +738,7 @@ const SEED_DATA = [{"date": "2026-07-11", "grouptype": "個人", "who": "厲旭"
     const status = $("fStatus").value;
 
     return events.filter(e=>{
+      if(e.private && !isAdmin) return false;
       if(search){
         const hay = [e.title,e.notes,e.who].join(" ").toLowerCase();
         if(!hay.includes(search)) return false;
@@ -886,12 +891,13 @@ const SEED_DATA = [{"date": "2026-07-11", "grouptype": "個人", "who": "厲旭"
 
     list.forEach(e=>{
       const tr = document.createElement("tr");
+      if(e.private) tr.style.opacity = "0.7";
       tr.innerHTML = `
         <td class="date">${escapeHtml(e.date||"")}</td>
         <td><span class="grouptag">${escapeHtml(e.grouptype||"—")}</span></td>
         <td>${escapeHtml(e.who||"—")}</td>
         <td>${escapeHtml([e.country,e.city].filter(Boolean).join(" / ")||"—")}</td>
-        <td>${escapeHtml(e.title||"—")}</td>
+        <td>${e.private ? '<span class="tag cancelled" style="margin-right:6px;">🔒 不公開</span>' : ""}${escapeHtml(e.title||"—")}</td>
         <td>${escapeHtml(e.category||"—")}</td>
         <td><span class="tag ${STATUS_CLASS[e.status]||'tentative'}">${STATUS_LABEL[e.status]||"未確定"}</span></td>
       `;
@@ -927,7 +933,7 @@ const SEED_DATA = [{"date": "2026-07-11", "grouptype": "個人", "who": "厲旭"
   function renderNextFlap(){
     const today = new Date().toISOString().slice(0,10);
     const upcoming = events
-      .filter(e=>e.status!=="cancelled" && e.date >= today)
+      .filter(e=>e.status!=="cancelled" && e.date >= today && !(e.private && !isAdmin))
       .sort((a,b)=> a.date.localeCompare(b.date))[0];
     const el = $("nextFlap");
     if(!upcoming){
@@ -981,6 +987,7 @@ const SEED_DATA = [{"date": "2026-07-11", "grouptype": "個人", "who": "厲旭"
     $("mCategory").value = e ? (e.category||"") : "";
     $("mSource").value = e ? (e.source||"") : "";
     $("mNotes").value = e ? (e.notes||"") : "";
+    $("mPrivate").checked = e ? !!e.private : false;
     $("deleteEvent").style.display = e ? "inline-block" : "none";
     $("editOverlay").classList.add("show");
   }
@@ -1006,6 +1013,7 @@ const SEED_DATA = [{"date": "2026-07-11", "grouptype": "個人", "who": "厲旭"
       category: $("mCategory").value.trim(),
       source: $("mSource").value.trim(),
       notes: $("mNotes").value.trim(),
+      private: $("mPrivate").checked,
     };
     try{
       await saveEventToDb(payload, id || null);
