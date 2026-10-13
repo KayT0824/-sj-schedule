@@ -239,7 +239,12 @@
   @media (max-width:640px){
     .two-col{grid-template-columns:1fr;}
     .flap-cell{min-width:80px; padding:8px 10px;}
-    .hero{height:180px;}
+    .hero{height:240px;}
+    .hero-overlay{inset:auto 0 0 0; background:rgba(244,244,242,0.96); padding:10px 16px;}
+    .hero-title{font-size:26px; letter-spacing:2px; color:#1a1a1a; text-shadow:none; gap:8px;}
+    .hero-title .dot{color:var(--sapphire);}
+    .hero-title span:last-child{color:#555 !important;}
+    .hero-sub{color:#555; text-shadow:none; font-size:12px; margin-top:2px; letter-spacing:0;}
     .filters-row{gap:8px;}
     .field{min-width:47%; flex:1 1 47%;}
     .field input[type="text"]{min-width:0; width:100%;}
@@ -261,7 +266,7 @@
   <div class="hero-overlay">
     <div class="hero-title-wrap">
       <div class="hero-title"><span class="dot">●</span>SUPER JUNIOR<span style="font-size:0.5em; color:rgba(255,255,255,0.6); letter-spacing:0.5px;">商演行程</span></div>
-      <div class="hero-sub">公開行程查詢・即時同步・可依任何欄位篩選</div>
+      <div class="hero-sub">公開行程查詢，可依任何欄位篩選</div>
     </div>
   </div>
   <div class="hero-admin-toggle">
