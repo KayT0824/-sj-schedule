@@ -14,14 +14,14 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
   :root{
-    --ink:#0e1016;
-    --panel:#171a24;
-    --panel-2:#1e2230;
-    --line:#2b3040;
+    --ink:#252b3c;
+    --panel:#303750;
+    --panel-2:#3a4260;
+    --line:#50597a;
     --paper:#e9ebf1;
-    --paper-dim:#9aa1b5;
+    --paper-dim:#b4bbd0;
     --sapphire:#2f6fed;
-    --sapphire-dim:#1c3f8c;
+    --sapphire-dim:#3e63b8;
     --coral:#e8503a;
     --gold:#e8b23a;
     --green:#3ac97f;
@@ -296,11 +296,15 @@
   <div class="notice" id="fbNotice"></div>
 
   <div class="filters">
-    <div class="filters-row">
-      <div class="field" style="flex:1 1 200px;">
-        <label>關鍵字(活動名稱／備註)</label>
-        <input type="text" id="fSearch" placeholder="例如：演唱會、Fancon…">
-      </div>
+    <div class="field">
+      <label>類別(個人／小分隊／大隊)</label>
+      <div class="chips" id="grouptypeChips"></div>
+    </div>
+    <div class="field" style="margin-top:12px;">
+      <label>主角(可複選)</label>
+      <div class="chips" id="whoChips"></div>
+    </div>
+    <div class="filters-row" style="margin-top:12px;">
       <div class="field">
         <label>日期從</label>
         <input type="date" id="fFrom">
@@ -330,17 +334,13 @@
           <option value="cancelled">已取消</option>
         </select>
       </div>
-      <button class="btn ghost sm" id="clearFilters">清除篩選</button>
     </div>
     <div class="filters-row" style="margin-top:12px;">
-      <div class="field" style="flex:1;">
-        <label>類別(個人／小分隊／大隊)</label>
-        <div class="chips" id="grouptypeChips"></div>
+      <div class="field" style="flex:1 1 200px;">
+        <label>關鍵字(活動名稱／備註)</label>
+        <input type="text" id="fSearch" placeholder="例如：演唱會、Fancon…">
       </div>
-    </div>
-    <div class="field" style="margin-top:12px;">
-      <label>主角(可複選)</label>
-      <div class="chips" id="whoChips"></div>
+      <button class="btn ghost sm" id="clearFilters">清除篩選</button>
     </div>
   </div>
 
@@ -526,8 +526,8 @@ const SEED_DATA = [{"date": "2026-07-11", "grouptype": "個人", "who": "厲旭"
   let sortKey = "date";
   let sortDir = "asc";
   let expandedId = null;
-  let activeWhoFilters = new Set();
   let activeGrouptype = "";
+  let activeWhoFilters = new Set();
   let heroSettings = {image:"", x:50, y:50};
   let unsubEvents = null;
   let unsubMeta = null;
