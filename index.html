@@ -14,23 +14,23 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
   :root{
-    --ink:#252b3c;
-    --panel:#303750;
-    --panel-2:#3a4260;
-    --line:#50597a;
-    --paper:#e9ebf1;
-    --paper-dim:#b4bbd0;
-    --sapphire:#2f6fed;
-    --sapphire-dim:#3e63b8;
-    --coral:#e8503a;
-    --gold:#e8b23a;
-    --green:#3ac97f;
+    --ink:#f4f4f2;
+    --panel:#ffffff;
+    --panel-2:#ececea;
+    --line:#cfcfca;
+    --paper:#1a1a1a;
+    --paper-dim:#555555;
+    --sapphire:#1f5fd6;
+    --sapphire-dim:#d6e4ff;
+    --coral:#c93a24;
+    --gold:#a56a00;
+    --green:#14804a;
     --radius:10px;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;background:var(--ink);color:var(--paper);font-family:'Inter',sans-serif;}
   body{min-height:100vh;padding-bottom:80px;}
-  ::selection{background:rgba(47,111,237,0.35);}
+  ::selection{background:rgba(31,95,214,0.25);}
   a{color:var(--sapphire);}
 
   /* ---------- Header image area ---------- */
@@ -39,8 +39,7 @@
     width:100%;
     height:260px;
     overflow:hidden;
-    background:linear-gradient(135deg,#151826 0%, #10121b 100%);
-    border-bottom:1px solid var(--line);
+    background:linear-gradient(135deg,#3b5aa8 0%, #7a93cf 100%);
   }
   .hero img{
     position:absolute;
@@ -55,8 +54,8 @@
   .hero-empty i{font-size:26px; opacity:0.5;}
   .hero-overlay{
     position:absolute; inset:0;
-    background:linear-gradient(180deg, rgba(10,11,17,0.05) 0%, rgba(10,11,17,0.85) 100%);
-    display:flex; align-items:flex-end; padding:22px 20px;
+    background:linear-gradient(180deg, rgba(20,28,55,0.05) 0%, rgba(20,28,55,0.55) 62%, rgba(244,244,242,1) 100%);
+    display:flex; align-items:flex-end; padding:22px 20px 62px;
   }
   .hero-title-wrap{max-width:1180px; margin:0 auto; width:100%;}
   .hero-title{
@@ -67,7 +66,7 @@
     display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;
     text-shadow:0 2px 12px rgba(0,0,0,0.5);
   }
-  .hero-title .dot{color:var(--sapphire); font-size:0.6em;}
+  .hero-title .dot{color:#8fb0ff; font-size:0.6em;}
   .hero-sub{color:rgba(255,255,255,0.75); font-size:13px; margin-top:4px; letter-spacing:0.5px; text-shadow:0 1px 6px rgba(0,0,0,0.5);}
 
   .hero-admin-toggle{
@@ -116,7 +115,7 @@
     border:1px solid var(--line); border-radius:var(--radius); padding:10px 14px; margin-bottom:18px; line-height:1.6;
   }
   .notice b{color:var(--gold); font-weight:600;}
-  .notice.warn{border-color:var(--coral); color:#f0b3a8;}
+  .notice.warn{border-color:var(--coral); color:#a8321f;}
   .notice.warn b{color:var(--coral);}
 
   /* ---------- Filter bar ---------- */
@@ -130,9 +129,9 @@
   }
   input:focus,select:focus{border-color:var(--sapphire);}
   input[type="text"]{min-width:160px;}
-  input[type="date"]{color-scheme:dark;}
+  input[type="date"]{color-scheme:light;}
   input[type="date"]::-webkit-calendar-picker-indicator{
-    filter:invert(0.9) brightness(1.4);
+    filter:none;
     cursor:pointer;
     padding:4px;
     border-radius:4px;
@@ -156,7 +155,7 @@
     background:var(--sapphire); color:#fff; border:none; border-radius:6px;
     padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Inter';
   }
-  .btn:hover{background:#3f7ef5;}
+  .btn:hover{background:#174fb3;}
   .btn.ghost{background:transparent; border:1px solid var(--line); color:var(--paper);}
   .btn.ghost:hover{border-color:var(--sapphire); color:var(--sapphire);}
   .btn.danger{background:var(--coral);}
@@ -184,7 +183,7 @@
 
   .toolbar{display:flex; justify-content:flex-end; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;}
   .admin-panel{
-    background:rgba(232,178,58,0.06); border:1px dashed var(--gold); border-radius:var(--radius);
+    background:rgba(165,106,0,0.07); border:1px dashed var(--gold); border-radius:var(--radius);
     padding:14px 16px; margin-bottom:14px;
   }
   .admin-panel-head{margin-bottom:10px;}
@@ -297,10 +296,6 @@
 
   <div class="filters">
     <div class="field">
-      <label>類別(個人／小分隊／大隊)</label>
-      <div class="chips" id="grouptypeChips"></div>
-    </div>
-    <div class="field" style="margin-top:12px;">
       <label>主角(可複選)</label>
       <div class="chips" id="whoChips"></div>
     </div>
@@ -526,7 +521,6 @@ const SEED_DATA = [{"date": "2026-07-11", "grouptype": "個人", "who": "厲旭"
   let sortKey = "date";
   let sortDir = "asc";
   let expandedId = null;
-  let activeGrouptype = "";
   let activeWhoFilters = new Set();
   let heroSettings = {image:"", x:50, y:50};
   let unsubEvents = null;
@@ -749,7 +743,6 @@ const SEED_DATA = [{"date": "2026-07-11", "grouptype": "個人", "who": "厲旭"
       if(city && e.city !== city) return false;
       if(category && e.category !== category) return false;
       if(status && e.status !== status) return false;
-      if(activeGrouptype && e.grouptype !== activeGrouptype) return false;
       if(activeWhoFilters.size > 0 && ![...activeWhoFilters].some(k=>matchesWhoKey(e,k))) return false;
       return true;
     }).sort((a,b)=>{
@@ -781,19 +774,6 @@ const SEED_DATA = [{"date": "2026-07-11", "grouptype": "個人", "who": "厲旭"
   }
 
   function renderChips(){
-    const grouptypes = [...new Set(events.map(e=>e.grouptype).filter(Boolean))];
-    const order = ["個人","小分隊","大隊"];
-    grouptypes.sort((a,b)=>order.indexOf(a)-order.indexOf(b));
-    const gEl = $("grouptypeChips");
-    gEl.innerHTML = "";
-    grouptypes.forEach(g=>{
-      const chip = document.createElement("div");
-      chip.className = "chip" + (activeGrouptype===g ? " active":"");
-      chip.textContent = g;
-      chip.onclick = ()=>{ activeGrouptype = activeGrouptype===g ? "" : g; renderAll(); };
-      gEl.appendChild(chip);
-    });
-
     const whos = [...new Set(events.map(e=>whoKeyOf(e)).filter(Boolean))];
     const extra = whos.filter(w=>!WHO_ORDER.includes(w)).sort();
     const wEl = $("whoChips");
@@ -957,7 +937,6 @@ const SEED_DATA = [{"date": "2026-07-11", "grouptype": "個人", "who": "厲旭"
       $("fCity").value ||
       $("fCategory").value ||
       $("fStatus").value ||
-      activeGrouptype ||
       activeWhoFilters.size > 0
     );
   }
@@ -1286,7 +1265,6 @@ const SEED_DATA = [{"date": "2026-07-11", "grouptype": "個人", "who": "厲旭"
       $("fSearch").value=""; $("fFrom").value=""; $("fTo").value="";
       $("fCountry").value=""; $("fCity").value=""; $("fCategory").value=""; $("fStatus").value="";
       activeWhoFilters = new Set();
-      activeGrouptype = "";
       showAll = false;
       renderAll();
     };
